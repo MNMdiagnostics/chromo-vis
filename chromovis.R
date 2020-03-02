@@ -5,7 +5,7 @@
 # Parse CLI options
 #
 
-require(optparse)
+suppressMessages(require(optparse))
 option_list = list(
   make_option(c("-v", "--vcf"), type="character", default=NULL, 
               help="VCF file (required)", metavar="vcf"),
@@ -18,20 +18,33 @@ option_list = list(
               help="Comma separated list of chromosomes[default=\"%default\"]", metavar="chr")
 ); 
 
-opt_parser = OptionParser(option_list=option_list);
-opt = parse_args(opt_parser);
+opt_parser = OptionParser(option_list=option_list)
+opt = parse_args(opt_parser)
 
 # test if there is at least the VCF argument: if not, return an error
 if (is.null(opt$vcf)) {
   stop("Missing required VCF argument. Try --help for usage instructions.", call.=FALSE)
 } 
 
+# get dirname of the script
+cmd = unlist(strsplit(opt_parser@usage, " "))[2]
+script.dirname = dirname(cmd)
+if (!startsWith(cmd, "/")) {
+  script.dirname = paste(getwd(), script.dirname, sep="/")
+}
+
 if (is.null(opt$output_prefix)) {
   opt$output_prefix <- opt$vcf 
 }
 
-require(VariantAnnotation)
-require(BSgenome)
+#######
+#
+# Script logic
+#
+#
+
+suppressMessages(require(VariantAnnotation))
+suppressMessages(require(BSgenome))
 
 get.ranges.from.file <-function(file, chrom=NA, extra.colnames=c()) {
   t <- read.table(file)
@@ -108,17 +121,16 @@ plot.chrom <- function(chrom, centr.gr, vcf.path, image.path, roh.bed=NA, genome
 }
 
 
-####
+##################
 #
-# Do the plotting
+# Plotting
 #
-#
-script.dir <- dirname(sys.frame(1)$ofile)
+########
 
 
 for (chrom in unlist(strsplit(opt$chromosomes, ","))) {
   png = paste0(opt$output_prefix,".",chrom,".png")
   cat(paste0("Plotting chromosome ", chrom, " to file ", png, "\n"))
-  centr.gr <- get.ranges.from.file(paste0(script.dir+"/centromers_hg38.bed"), chrom=chrom)
+  centr.gr <- get.ranges.from.file(paste0(script.dirname,"/centromers_hg38.bed"), chrom=chrom)
   plot.chrom(chrom, centr.gr, opt$vcf, png, roh.bed = opt$roh_bed)  
 }
