@@ -1,3 +1,34 @@
+#!/usr/bin/env Rscript
+
+###
+#
+# Parse CLI options
+#
+
+require(optparse)
+option_list = list(
+  make_option(c("-v", "--vcf"), type="character", default=NULL, 
+              help="VCF file (required)", metavar="vcf"),
+  make_option(c("-r", "--roh_bed"), type="character", default=NULL, 
+              help="BED file with regions of homozygozity", metavar="bed"),
+  make_option(c("-o", "--output_prefix"), type="character", default=NULL, 
+              help="Output prefix name [default=%input_vcf]", metavar="prefix"),
+  make_option(c("-c", "--chromosomes"), type="character", 
+              default=paste0("chr",c(as.character(c(1:22)), "X","Y"),collapse=","), 
+              help="Comma separated list of chromosomes[default=\"%default\"]", metavar="chr")
+); 
+
+opt_parser = OptionParser(option_list=option_list);
+opt = parse_args(opt_parser);
+
+# test if there is at least the VCF argument: if not, return an error
+if (is.null(opt$vcf)) {
+  stop("Missing required VCF argument. Try --help for usage instructions.", call.=FALSE)
+} 
+
+if (is.null(opt$output_prefix)) {
+  opt$output_prefix <- opt$vcf 
+}
 
 require(VariantAnnotation)
 require(BSgenome)
@@ -77,12 +108,15 @@ plot.chrom <- function(chrom, vcf.path, image.path, roh.bed=NA, genome="hg38") {
   dev.off()
 }
 
-setwd('~/Work/projects/MNM/repos/variant_vis/')
-output.prefix='~/Work/projects/MNM/repos/variant_vis/plots/'
-chroms <- paste0("chr", c(1:22,"X","Y"))
-for (chrom in chroms) {
-  plot.chrom(chrom, 'test.vcf.gz', paste0(output.prefix,chrom,".png"), 
-             roh.bed = 'test.norm.roh.bed')  
+
+####
+#
+# Do the plotting
+#
+#
+
+for (chrom in unlist(strsplit(opt$chromosomes, ","))) {
+  png = paste0(opt$output_prefix,".",chrom,".png")
+  cat(paste0("Plotting chromosome ", chrom, " to file ", png, "\n"))
+  plot.chrom(chrom, opt$vcf, png, roh.bed = opt$roh_bed)  
 }
-
-
