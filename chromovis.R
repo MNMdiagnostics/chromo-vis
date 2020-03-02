@@ -68,9 +68,8 @@ running.mean <- function(a, bin.width=1000) {
   return(sapply(c(1:length(a)), function(x) mean(a[max(0,(x-b)):min(length(a),(x+b))])))
 }
 
-plot.chrom <- function(chrom, vcf.path, image.path, roh.bed=NA, genome="hg38") {
+plot.chrom <- function(chrom, centr.gr, vcf.path, image.path, roh.bed=NA, genome="hg38") {
   chr.gr   <- get.chromosome.ranges(chrom, genome)
-  centr.gr <- get.ranges.from.file("centromers_hg38.bed", chrom=chrom)
   v <- readVcf(TabixFile(vcf.path), genome, param=ScanVcfParam(which=chr.gr, fixed="FILTER", geno=c("DP","AD")))
   # filter PASS variants
   v <- v[fixed(v)$FILTER == "PASS"]
@@ -114,9 +113,12 @@ plot.chrom <- function(chrom, vcf.path, image.path, roh.bed=NA, genome="hg38") {
 # Do the plotting
 #
 #
+script.dir <- dirname(sys.frame(1)$ofile)
+
 
 for (chrom in unlist(strsplit(opt$chromosomes, ","))) {
   png = paste0(opt$output_prefix,".",chrom,".png")
   cat(paste0("Plotting chromosome ", chrom, " to file ", png, "\n"))
-  plot.chrom(chrom, opt$vcf, png, roh.bed = opt$roh_bed)  
+  centr.gr <- get.ranges.from.file(paste0(script.dir+"/centromers_hg38.bed"), chrom=chrom)
+  plot.chrom(chrom, centr.gr, opt$vcf, png, roh.bed = opt$roh_bed)  
 }
