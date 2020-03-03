@@ -9,7 +9,7 @@ suppressMessages(require(optparse))
 option_list = list(
   make_option(c("-v", "--vcf"), type="character", default=NULL, 
               help="VCF file (required)", metavar="vcf"),
-  make_option(c("-r", "--roh_bed"), type="character", default=NULL, 
+  make_option(c("-h", "--roh_bed"), type="character", default=NULL, 
               help="BED file with regions of homozygozity", metavar="bed"),
   make_option(c("-o", "--output_prefix"), type="character", default=NULL, 
               help="Output prefix name [default=%input_vcf]", metavar="prefix"),
